@@ -12,7 +12,16 @@ http:
   # To match all requests you can use the "/" path.
   path: '/'
   # You can specify a custom health check path. The default is "/".
-  # healthcheck: '/'
+  healthcheck:
+    path: /
+    success_codes: '200-399'
+    interval: 30s
+    timeout: 10s
+
+
+network:
+  vpc:
+    security_groups: [sg-07b42971d4a13fca3]
 
 # Configuration for your containers and service.
 image:
@@ -22,7 +31,7 @@ image:
 
 cpu: 256       # Number of CPU units for the task.
 memory: 512    # Amount of memory in MiB used by the task.
-count: 2       # Number of tasks that should be running in your service.
+count: 5       # Number of tasks that should be running in your service.
 exec: true     # Enable running commands in your container.
 
 storage:
@@ -33,12 +42,11 @@ storage:
       read_only: false
 
 
-# Optional fields for more advanced use-cases.
-#
-#variables:                    # Pass environment variables as key value pairs.
-#  LOG_LEVEL: info
-
-#secrets:                      # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
+secrets:     # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
+  WORDPRESS_DB_HOST: /rds/db-endpoint
+  WORDPRESS_DB_USER: /rds/db-user
+  WORDPRESS_DB_PASSWORD: /rds/db-password
+  WORDPRESS_DB_NAME: /rds/db-name
 #  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.
 
 # You can override any of the values defined above by environment.

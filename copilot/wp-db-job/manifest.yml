@@ -22,6 +22,11 @@ image:
 cpu: 256       # Number of CPU units for the task.
 memory: 512    # Amount of memory in MiB used by the task.
 
+storage:
+  volumes:
+    placeholderEFS: # Enable EFS at the env level so that it doesn't have to be created by the fe service.
+      efs: true     # This is a small time-saver in the developer cycle, not actually required. 
+      path: /var/data
 # Optional fields for more advanced use-cases.
 #
 #variables:                    # Pass environment variables as key value pairs.
