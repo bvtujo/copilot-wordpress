@@ -1,0 +1,4 @@
+FROM amazon/aws-cli
+ENTRYPOINT ["aws"]
+CMD ["secretsmanager", "list-secrets"]
+

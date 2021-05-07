@@ -1,0 +1,111 @@
+Parameters:
+  App:
+    Type: String
+    Description: Your application's name.
+  Env:
+    Type: String
+    Description: The environment name your service, job, or workflow is being deployed to.
+  Name:
+    Type: String
+    Description: The name of the service, job, or workflow being deployed.
+  # Customize your Aurora Serverless cluster by setting the default value of the following parameters.
+  wpclusterDBName:
+    Type: String
+    Description: The name of the initial database to be created in the DB cluster.
+    Default: main
+    # Cannot have special characters
+    # Naming constraints: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/CHAP_Limits.html#RDS_Limits.Constraints
+  wpclusterDBAutoPauseSeconds:
+    Type: Number
+    Description: The duration in seconds before the cluster pauses.
+    Default: 1000
+Mappings:
+  wpclusterEnvScalingConfigurationMap: 
+    word:
+      "DBMinCapacity": 1 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
+      "DBMaxCapacity": 8 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
+Resources:
+  wpclusterDBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Group of Copilot private subnets for Aurora cluster.
+      SubnetIds:
+        !Split [',', { 'Fn::ImportValue': !Sub '${App}-${Env}-PrivateSubnets' }]
+  wpclusterSecurityGroup:
+    Metadata:
+      'aws:copilot:description': 'A security group for your workload to access the DB cluster wpcluster'
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: !Sub 'The Security Group for ${Name} to access DB cluster wpcluster.'
+      VpcId:
+        Fn::ImportValue:
+          !Sub '${App}-${Env}-VpcId'
+      Tags:
+        - Key: Name
+          Value: !Sub 'copilot-${App}-${Env}-${Name}-Aurora'
+  wpclusterDBClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: The Security Group for the database cluster.
+      SecurityGroupIngress:
+        - ToPort: 3306
+          FromPort: 3306
+          IpProtocol: tcp
+          Description: !Sub 'From the Aurora Security Group of the workload ${Name}.'
+          SourceSecurityGroupId: !Ref wpclusterSecurityGroup
+      VpcId:
+        Fn::ImportValue:
+          !Sub '${App}-${Env}-VpcId'
+  wpclusterAuroraSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: !Sub Aurora main user secret for ${AWS::StackName}
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: "password"
+        ExcludePunctuation: true
+        IncludeSpace: false
+        PasswordLength: 16
+  wpclusterDBClusterParameterGroup:
+    Type: 'AWS::RDS::DBClusterParameterGroup'
+    Properties:
+      Description: !Ref 'AWS::StackName'
+      Family: 'aurora-mysql5.7'
+      Parameters:
+        character_set_client: 'utf8'
+  wpclusterDBCluster:
+    Metadata:
+      'aws:copilot:description': 'A serverless, autoscaling MySQL database cluster'
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      MasterUsername:
+        !Join [ "",  [ '{{resolve:secretsmanager:', !Ref wpclusterAuroraSecret, ":SecretString:username}}" ]]
+      MasterUserPassword:
+        !Join [ "",  [ '{{resolve:secretsmanager:', !Ref wpclusterAuroraSecret, ":SecretString:password}}" ]]
+      DatabaseName: !Ref wpclusterDBName
+      Engine: 'aurora-mysql'
+      EngineVersion: '5.7.mysql_aurora.2.07.1'
+      EngineMode: serverless
+      DBClusterParameterGroupName: !Ref wpclusterDBClusterParameterGroup
+      DBSubnetGroupName: !Ref wpclusterDBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref wpclusterDBClusterSecurityGroup
+      ScalingConfiguration:
+        AutoPause: true
+        MinCapacity: !FindInMap [wpclusterEnvScalingConfigurationMap, !Ref Env, DBMinCapacity]
+        MaxCapacity: !FindInMap [wpclusterEnvScalingConfigurationMap, !Ref Env, DBMaxCapacity]
+        SecondsUntilAutoPause: !Ref wpclusterDBAutoPauseSeconds
+  wpclusterSecretAuroraClusterAttachment:
+    Type: AWS::SecretsManager::SecretTargetAttachment
+    Properties:
+      SecretId: !Ref wpclusterAuroraSecret
+      TargetId: !Ref wpclusterDBCluster
+      TargetType: AWS::RDS::DBCluster
+Outputs:
+  wpclusterSecret: # injected as WPCLUSTER_SECRET environment variable by Copilot.
+    Description: "The JSON secret that holds the database username and password. Fields are 'host', 'port', 'dbname', 'username', 'password', 'dbClusterIdentifier' and 'engine'"
+    Value: !Ref wpclusterAuroraSecret
+  wpclusterSecurityGroup:
+    Description: "The security group to attach to the workload."
+    Value: !Ref wpclusterSecurityGroup
+
