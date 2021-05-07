@@ -41,7 +41,7 @@ export COPILOT_ENV=test
 SG_ID=$(aws ec2 describe-security-groups | jq -r '.SecurityGroups[] | select(.GroupName | contains("wpclusterSecurityGroup")) | .GroupId')
 echo $SG_ID
 ```
-This Security Group will need to go in your wordpress frontend container.
+This Security Group will need to go in your wordpress frontend manifest.
 
 #### Initialize your wordpress service
 ```
@@ -54,16 +54,17 @@ Once you've run `copilot svc init`, you'll need to modify your manifest to speci
 In the manifest, replace {{$SG_ID}} with the value of the environment variable you defined in the last step. 
 ```yaml
 # ./copilot/fe/manifest.yml
-
 network:
   vpc:
-    security_groups: [{{$SG_ID}}]
+    security_groups: [{{$REPLACE_ME_SECURITY_GROUP_ID}}]
 ```
 #### Deploy your wordpress container
 ```
 copilot svc deploy -n fe
 ```
 
+#### Log in to your new wordpress site!
+Navigate to the load balancer URL that Copilot outputs after `svc deploy` finishes to see your new wordpress site. You can log in with the default username and password (user/bitnami) by navigating to `${LB_URL}/login/`. 
 
 ## Teardown
 
