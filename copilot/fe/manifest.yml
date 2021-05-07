@@ -15,23 +15,25 @@ http:
   healthcheck:
     path: /
     success_codes: '200-399'
-    interval: 30s
-    timeout: 10s
-
+    interval: 60s
+    timeout: 5s
+    healthy_threshold: 3
+    unhealthy_threshold: 5
+  stickiness: true
 
 network:
   vpc:
-    security_groups: [sg-07b42971d4a13fca3]
+    security_groups: [{{REPLACE-ME-SECURITY-GROUP-ID}}]
 
 # Configuration for your containers and service.
 image:
-  location: wordpress:5
+  location: public.ecr.aws/bitnami/wordpress:latest
   # Port exposed through your container to route traffic to it.
-  port: 80
+  port: 8080
 
 cpu: 256       # Number of CPU units for the task.
 memory: 512    # Amount of memory in MiB used by the task.
-count: 5       # Number of tasks that should be running in your service.
+count: 2       # Number of tasks that should be running in your service.
 exec: true     # Enable running commands in your container.
 
 storage:
@@ -41,12 +43,17 @@ storage:
       efs: true
       read_only: false
 
+variables:
+  WORDPRESS_DATABASE_PORT_NUMBER: 3306
+  MYSQL_CLIENT_FLAVOR: mysql
+  WORDPRESS_BLOG_NAME: HELLO COPILOT
 
 secrets:     # Pass secrets from AWS Systems Manager (SSM) Parameter Store.
-  WORDPRESS_DB_HOST: /rds/db-endpoint
-  WORDPRESS_DB_USER: /rds/db-user
-  WORDPRESS_DB_PASSWORD: /rds/db-password
-  WORDPRESS_DB_NAME: /rds/db-name
+  WORDPRESS_DATABASE_HOST: /rds/db-endpoint
+  WORDPRESS_DATABASE_USER: /rds/db-user
+  WORDPRESS_DATABASE_PASSWORD: /rds/db-password
+  WORDPRESS_DATABASE_NAME: /rds/db-name
+
 #  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.
 
 # You can override any of the values defined above by environment.

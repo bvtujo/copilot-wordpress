@@ -20,7 +20,11 @@ secretvalue=$(aws secretsmanager get-secret-value --secret-id $secretID | jq -r 
 
 echo "Creating SSM parameters:"
 echo "/rds/db-endpoint"
-aws --output text ssm put-parameter --name /rds/db-endpoint --value $(echo $secretvalue | jq -r '. | "\(.host):\(.port)"') --type SecureString\
+aws --output text ssm put-parameter --name /rds/db-endpoint --value $(echo $secretvalue | jq -r '.host') --type SecureString\
+  --tags Key=copilot-environment,Value=${COPILOT_ENV} Key=copilot-application,Value=${COPILOT_APP} || echo "Parameter already exists"
+
+echo "/rds/db-endpoint-with-port:"
+aws --output text ssm put-parameter --name /rds/db-endpoint-with-port --value $(echo $secretvalue | jq -r '. | "\(.host):\(.port)"') --type SecureString\
   --tags Key=copilot-environment,Value=${COPILOT_ENV} Key=copilot-application,Value=${COPILOT_APP} || echo "Parameter already exists"
 
 echo "/rds/db-password"
