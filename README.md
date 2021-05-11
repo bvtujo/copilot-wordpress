@@ -4,6 +4,14 @@ The [AWS Reference Architecture](https://docs.aws.amazon.com/whitepapers/latest/
 
 ## Instructions
 
+### Installation
+
+Install the latest version of Copilot using the [official instructions](https://github.com/aws/copilot-cli#installation).
+
+Ensure that you have the [AWS CLI installed](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html) and configured.
+
+Make sure that Docker is installed and running. 
+
 #### Clone this repository.
 ```
 git clone git@github.com:bvtujo/copilot-wordpress.git
