@@ -24,7 +24,7 @@ Mappings:
     test:
       "DBMinCapacity": 1 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
       "DBMaxCapacity": 8 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
-    word:
+    prod:
       "DBMinCapacity": 1 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
       "DBMaxCapacity": 8 # AllowedValues: [1, 2, 4, 8, 16, 32, 64, 128, 256]
 Resources:
@@ -47,6 +47,8 @@ Resources:
         - Key: Name
           Value: !Sub 'copilot-${App}-${Env}-${Name}-Aurora'
   wpDBClusterSecurityGroup:
+    Metadata: 
+      'aws:copilot:description': 'A security group for the database cluster.'
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: The Security Group for the database cluster.
@@ -60,6 +62,8 @@ Resources:
         Fn::ImportValue:
           !Sub '${App}-${Env}-VpcId'
   wpAuroraSecret:
+    Metadata:
+      'aws:copilot:description': 'A secret to hold information about the database'
     Type: AWS::SecretsManager::Secret
     Properties:
       Description: !Sub Aurora main user secret for ${AWS::StackName}
@@ -77,6 +81,8 @@ Resources:
       Parameters:
         character_set_client: 'utf8'
   wpDBCluster:
+    Metadata:
+      'aws:copilot:description': 'A serverless Aurora cluster with autoscaling and autopause.'
     Type: 'AWS::RDS::DBCluster'
     Properties:
       MasterUsername:

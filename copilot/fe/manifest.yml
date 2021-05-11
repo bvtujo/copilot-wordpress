@@ -43,6 +43,7 @@ variables:
   MYSQL_CLIENT_FLAVOR: mysql
   WORDPRESS_BLOG_NAME: HELLO COPILOT
 
+
 #  GITHUB_TOKEN: GITHUB_TOKEN  # The key is the name of the environment variable, the value is the name of the SSM parameter.
 
 # You can override any of the values defined above by environment.
@@ -50,9 +51,15 @@ environments:
   test:
     count:
       spot: 2               # Number of tasks to run for the "test" environment.
+    secrets:
+      WORDPRESS_USERNAME: /wordpress/test/admin-username
+      WORDPRESS_PASSWORD: /wordpress/test/admin-password
   prod:
     count: 
       range:
         min: 2
         max: 10
         spot_from: 5
+    secrets:
+      WORDPRESS_USERNAME: /wordpress/prod/admin-username
+      WORDPRESS_PASSWORD: /wordpress/prod/admin-password
