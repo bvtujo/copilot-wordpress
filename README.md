@@ -67,11 +67,11 @@ It will also create a secret which contains metadata about your cluster. This se
 
 ```json
 {
-  'username': 'user',
-  'password': 'r@nd0MP4$$W%rd',
-  'host': 'database-url.us-west-2.amazonaws.com',
-  'port': '3306',
-  'dbname': 'main'
+  "username": "user",
+  "password": "r@nd0MP4$$W%rd",
+  "host": "database-url.us-west-2.amazonaws.com",
+  "port": "3306",
+  "dbname": "main"
 }
 ```
 
