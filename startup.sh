@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Exit if the secret wasn't populated by the ECS agent
 [ -z $WP_SECRET ] && echo "Secret WP_SECRET not populated in environment" && exit 1
 
 export WORDPRESS_DATABASE_HOST=`echo $WP_SECRET T | jq -r '.host'`
