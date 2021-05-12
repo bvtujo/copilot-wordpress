@@ -117,7 +117,7 @@ Modify the newly created manifest at `copilot/fe/manifest.yml` (or use the one p
 storage:
   volumes:
     wp-content:
-      path: /var/www/html/wp-content
+      path: /bitnami/wordpress
       read_only: false
       efs: true
 ```
