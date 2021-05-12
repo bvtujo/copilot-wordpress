@@ -18,7 +18,7 @@ Make sure that Docker is installed and running.
 
 #### Clone this repository.
 ```
-git clone git@github.com:bvtujo/copilot-wordpress.git
+git clone git@github.com:bvtujo/copilot-wordpress.git && cd copilot-wordpress
 ```
 
 #### Deploy the app.
