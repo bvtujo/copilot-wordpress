@@ -8,3 +8,4 @@ COPY --from=installer /usr/local/bin/jq /usr/bin/jq
 COPY startup.sh /opt/copilot/scripts/startup.sh
 ENTRYPOINT ["/bin/sh", "-c"]
 CMD ["/opt/copilot/scripts/startup.sh"]
+EXPOSE 8080
