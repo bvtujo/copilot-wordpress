@@ -4,9 +4,9 @@ The [AWS Reference Architecture](https://docs.aws.amazon.com/whitepapers/latest/
 
 You can see a demo version of this site, which I've customized and added some features to, at [fe.test.wordpress.ghostpilot.biz](https://fe.test.wordpress.ghostpilot.biz). Feel free to contact me and the other Copilot team members on [Gitter](https://gitter.im/aws/copilot-cli) or [GitHub](https://github.com/aws/copilot-cli) with any issues or questions. 
 
-## Instructions
+# Instructions
 
-### Installation
+## Installation
 
 Install the latest version of Copilot using the [official instructions](https://github.com/aws/copilot-cli#installation).
 
@@ -14,14 +14,14 @@ Ensure that you have the [AWS CLI installed](https://docs.aws.amazon.com/cli/lat
 
 Make sure that Docker is installed and running. 
 
-### The Fast Version
+## The Fast Version
 
-#### Clone this repository.
+### Clone this repository.
 ```
 git clone git@github.com:bvtujo/copilot-wordpress.git && cd copilot-wordpress
 ```
 
-#### Deploy the app.
+### Deploy the app.
 
 ```bash
 copilot init \
@@ -42,9 +42,9 @@ The bulk of this time is spent creating the RDS database and parameter group. Un
 4. A serverless, autoscaling MySQL RDS cluster in private subnets with networking automatically configured
 5. An ECS service running containerized Wordpress, with copies spread across AZs and autoscaling enabled into Fargate Spot capacity
 
-### The DIY version
+## The DIY version
 
-#### Set up a Copilot application
+### Set up a Copilot application
 Start from a fresh empty directory. Initialize a git repository:
 ```
 git init
@@ -60,14 +60,14 @@ Just run:
 copilot app init --domain mydomain.com wordpress
 ```
 
-#### Deploy an environment
+### Deploy an environment
 ```
 copilot env init -n test --default-config --profile default
 ```
 
 An environment is a collection of networking resources including a VPC, public and private subnets, an ECS Cluster, and (when necessary) an Application Load Balancer to serve traffic to your containers. Creating an environment is a prerequisite to deploying a service with Copilot. 
 
-#### Create your frontend Wordpress service
+### Create your frontend Wordpress service
 Create a Dockerfile with the following content:
 ```Dockerfile
 FROM ubuntu:latest as installer
@@ -108,7 +108,7 @@ copilot svc init -t "Load Balanced Web Service" --dockerfile ./Dockerfile --port
 
 This will register a new service with Copilot so that it can easily be deployed to your new environment. It will write a manifest file at `copilot/fe/manifest.yml` containing simple, opinionated, extensible configuration for your service.
 
-#### Set up EFS
+### Set up EFS
 Wordpress needs a filesystem to store uploaded user content, themes, plugins, and some configuration files. We can do this with Copilot's built-in [managed EFS capability](https://aws.github.io/copilot-cli/docs/developing/storage/).
 
 Modify the newly created manifest at `copilot/fe/manifest.yml` (or use the one provided with this repository) so that it includes the following lines:
@@ -123,7 +123,7 @@ storage:
 ```
 This tells Copilot to create a filesystem in your environment, create a dedicated sub-directory for your service in that filesystem, and use that directory to store everything the wordpress installation needs. 
 
-#### Customize your healthcheck configuration
+### Customize your healthcheck configuration
 The Load Balancer needs some specific settings enabled in order to work with wordpress. The `stickiness` key is crucial so redirects work as expected. 
 
 Modify the `http` section of your manifest to the following:
@@ -143,7 +143,19 @@ http:
   stickiness: true
 ```
 
-#### Set up your database for wordpress.
+### Configure Autoscaling
+If you wish to have your service scale with traffic, you can  add the following to the `count` section of the manifest. Instead of a single number, you'll specify `count` as a map. This config will launch up to 2 copies of your service on dedicated Fargate capacity. Then, if traffic causes scaling events up to 3 or 4 copies, ECS will attempt to place those tasks on Fargate Spot, saving you nearly 75% over on-demand pricing. 
+
+```yaml
+count:         # Number of tasks that should be running in your service.
+  range:
+    min: 1
+    max: 4
+    spot_from: 3
+  cpu_percentage: 75
+```
+
+### Set up your database for wordpress.
 Wordpress also needs a database. We can set this up with Copilot's `storage init` command, which takes advantage of the [Additional Resources](https://aws.github.io/copilot-cli/docs/developing/additional-aws-resources/) functionality to simplify your experience configuring serverless databases.
 
 ```bash
@@ -166,7 +178,7 @@ It will also create a secret which contains metadata about your cluster. This se
 
 We'll convert this data into variables wordpress can use via the `startup.sh` script which we wrap around our wordpress image in the Dockerfile. 
 
-#### Customize Wordpress initialization options
+### Customize Wordpress initialization options
 The Bitnami wordpress image has some environment variables you can set to initialize your administrator user and password, your site's name and description, etc. You can read more about these variables [here](https://github.com/bitnami/bitnami-docker-wordpress#environment-variables)
 
 To customize these variables, modify the `variables` section of your manifest:
@@ -176,7 +188,7 @@ variables:
   WORDPRESS_BLOG_NAME: My Blog
 ```
 
-#### Deploy your wordpress container
+### Deploy your wordpress container
 
 Now that we've set up the manifest correctly and run `storage init` to create our database, we can deploy the service to our test environment.
 
@@ -186,12 +198,12 @@ copilot svc deploy -n fe
 
 This step will likely take 15 minutes, as the EFS filesystem, database cluster, ECS service, and Application Load Balancer are created. 
 
-#### Log in to your new wordpress site!
+### Log in to your new wordpress site!
 Navigate to the load balancer URL that Copilot outputs after `svc deploy` finishes to see your new wordpress site. You can log in with the default username and password (user/bitnami) by navigating to `${LB_URL}/login/`. 
 
 ## Teardown
 
-#### Delete your application
+### Delete your application
 ```
 copilot app delete
 ```
