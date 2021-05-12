@@ -32,7 +32,7 @@ copilot init \
   --deploy
 ```
 
-About 20 minutes later, Copilot will print a load balancer URL from which you can log in to your new wordpress installation with the default credentials (`user/bitnami`). 
+About 20 minutes later, Copilot will print a load balancer URL from which you can log in to your new wordpress installation by going to the `/login` path and entering the default credentials (`user/bitnami`). 
 
 The bulk of this time is spent creating the RDS database and parameter group. Under the hood, Copilot has created:
 
