@@ -91,7 +91,7 @@ You'll also need the `startup.sh` script mentioned in the Dockerfile.
 # Exit if the secret wasn't populated by the ECS agent
 [ -z $WP_SECRET ] && echo "Secret WP_SECRET not populated in environment" && exit 1
 
-export WORDPRESS_DATABASE_HOST=`echo $WP_SECRET T | jq -r '.host'`
+export WORDPRESS_DATABASE_HOST=`echo $WP_SECRET | jq -r '.host'`
 export WORDPRESS_DATABASE_PORT_NUMBER=`echo $WP_SECRET | jq -r .port`
 export WORDPRESS_DATABASE_NAME=`echo $WP_SECRET | jq -r .dbname`
 export WORDPRESS_DATABASE_USER=`echo $WP_SECRET | jq -r .username`
